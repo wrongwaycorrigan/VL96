@@ -6,7 +6,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/status-experimental-orange?style=for-the-badge" alt="Status: experimental">
-  <img src="https://img.shields.io/badge/version-1.35-blue?style=for-the-badge" alt="Version 1.35">
+  <img src="https://img.shields.io/badge/version-1.42-blue?style=for-the-badge" alt="Version 1.42">
   <img src="https://img.shields.io/badge/REAPER-JSFX-4a90d9?style=for-the-badge" alt="REAPER JSFX">
 </p>
 <p>
@@ -15,18 +15,18 @@
   <img src="https://img.shields.io/badge/samples-none-lightgrey?style=flat-square" alt="Samples: none">
 </p>
 
-<iAir, a reed and a tube, simulated in real time.</i>
+<i>No oscillators, no samples — just air, a reed and a tube, simulated in real time.</i>
 
 </div>
 
 ---
 
 > [!WARNING]
-> **Experimental.** VL96 is a research project in active development. Sounds, controls and presets change between versions, and some notes or settings may still squeak, flutter or behave unexpectedly.
+> **Experimental.** VL96 is a research project in active development. Sounds, controls and presets change between versions, and some notes or settings may still squeak, flutter or behave unexpectedly. Save your projects with the version you used.
 
 ## What it is
 
-VL96 is a monophonic wind synthesizer for wind controllers and electronic wind instruments. It models how an instrument actually makes sound: breath pressure drives a reed or air jet, which excites a resonating tube, and the tube's reflections feed back to sustain the note. The aim is the expressive, slightly characterful sound of the early-'90s physical-modeling synths rather than a clinical simulation.
+VL96 is a monophonic wind synthesizer for wind controllers such as the Roland Aerophone AE-20. Instead of playing back recordings, it models how an instrument actually makes sound: breath pressure drives a reed or air jet, which excites a resonating tube, and the tube's reflections feed back to sustain the note. The aim is the expressive, slightly characterful sound of the early-'90s physical-modeling synths rather than a clinical simulation.
 
 **Voices:** Clarinet · Sax · Flute · Oboe · Shakuhachi · Sax II (two-tube cone, experimental)
 
@@ -73,4 +73,4 @@ VL96 is a monophonic wind synthesizer for wind controllers and electronic wind i
 
 ## Disclaimer
 
-VL96 is an independent project and is not affiliated with, endorsed by or derived from Yamaha Corporation. Product names mentioned are trademarks of their respective owners and are used only to describe the research context.
+VL96 is an independent project and is not affiliated with, endorsed by or derived from Yamaha Corporation or Roland Corporation. Product names mentioned are trademarks of their respective owners and are used only to describe the research context.

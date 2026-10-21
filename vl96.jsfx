@@ -1,9 +1,9 @@
-desc:VL96 - 1990s inspired waveguide wind instrument
+desc:VL96 - waveguide wind instrument (breath controlled)
 //tags: instrument synthesis physical-modeling wind
 //author: 
 //
 // Original digital-waveguide wind models in the spirit of early-90s physical
-// modelling synths.
+// modelling synths. Not a copy of any product.
 //   - cylindrical reed (clarinet family)
 //   - conical reed, approximated (saxes, double reeds)
 //   - air jet across an edge (flutes, shakuhachi, pan flute, recorder)
@@ -57,6 +57,8 @@ slider49:apex=0.15<0.04,0.45,0.005>-Two-tube Apex Ratio
 slider50:artic=0.5<0,1,0.01>-Attack (smooth..crisp)
 slider51:life=1<0,1,0.01>-Breath Turbulence (cycle-to-cycle wobble)
 slider52:reso=0.35<0,1,0.01>-Reso: breath-swept resonance (like breath > filter resonance)
+slider53:throat=0<0,1,0.01>-Throat depth (experimental, follows breath; off in all presets)
+slider54:airhf=0.5<0,2,0.01>-High air: bright breath rush, pulsing with the tone (per preset)
 slider42:subamt=0<0,1,0.01>-Subtone
 slider37:trim=-2<-12,12,0.1>-Preset Level Trim (dB)
 slider36:kcut=40<2,40,0.1>-Tone Ceiling (harmonics)
@@ -85,7 +87,7 @@ scenv = 0; tgenv = 0; vt = 0; dic1 = dic2 = dic3 = dic4 = 0;
 tg_k = exp(-1 / (0.018 * srate));    // tongue transient ~18 ms
 pmax = 0.96;                          // reed choke point (fixed)
 cone_t = 0;                           // conical tuning trim (calibrated)
-k1 = 1 - exp(-1 / (0.004 * srate));
+k1 = 1 - exp(-1 / (0.004 * srate)); ks = 1 - exp(-1 / (0.012 * srate));
 hold_k = exp(-1 / (0.6 * srate));   // pressure memory falls over ~0.6 s   // breath smoothing (~4 ms)
 ka = 1 - exp(-1 / (0.025 * srate));   // velocity-mode attack
 kr = 1 - exp(-1 / (0.120 * srate));   // velocity-mode release
@@ -117,6 +119,7 @@ function update_params() (
   // (no scoop, clear tongue, short release); the middle is the preset as voiced
   // SENS: where the bloom begins - medium sits just above normal playing, soft lower, hard near the top
   bth = sens <= 1.2 ? 0.92 - 0.12 * (sens - 0.7) / 0.5 : 0.80 - 0.25 * (sens - 1.2) / 0.4;
+  // (throat chamber: tuned per sample from breath, see the reed section)
   ad = artic - 0.5;
   scoopE = ad < 0 ? scoop + (-2 * ad) * (max(scoop, 0.45) - scoop) : scoop * (1 - 2 * ad);
   tongueE = ad < 0 ? tongue * (1 + 1.7 * ad) : tongue + 2 * ad * (max(tongue, 0.8) - tongue);
@@ -133,12 +136,12 @@ function update_params() (
 function apply_preset(n) (
   artic = 0.5; reso = 0.35;
   // tone settings fitted to measured harmonic profiles of early-90s physical-model wind presets
-  n == 0 ? (model=0; stiff=0.31; opening=0.69; bright=0.542; even=0.681; noiseamt=0.05; growlp=0.0; gthr=0.92; vibp=0.25; vibrate=4.6; glidems=4; body=0.595; bodyf=430; f2a=0; hpf=0; scoop=0.10; scoopms=40; vibdel=300; tongue=0.35; btone=0.481; relms=120; kcut=40; trim=-2; matn=0.2; mat=0.2; reedk=0.5; subamt=0; bell=0; drift=2.2; thmix=0.055; thfc=1150; rsoft=1; ftune=0; life=1;) :
-  n == 1 ? (model=1; stiff=0.27; opening=0.66; bright=1; even=0; noiseamt=0.08; growlp=0.15; gthr=0.92; vibp=0.30; vibrate=4.4; glidems=4; body=0.986; bodyf=1500; cpos=0.449; f2f=2700; f2a=0.499; hpf=0; scoop=0.35; scoopms=70; vibdel=300; tongue=0.45; btone=0.519; relms=150; kcut=5.002; trim=2.9; matn=0.85; mat=0.85; reedk=0.5; subamt=0.85; bell=0.615; drift=2.2; thmix=0; rsoft=0; ftune=0; twot=0; life=1;) :
-  n == 2 ? (model=2; jetr=0.46; airgain=1.00; bright=0.4; even=0.281; noiseamt=0.038; growlp=0.0; gthr=0.95; vibp=0.35; vibrate=4.8; glidems=4; body=0.9; bodyf=2230; f2a=0; hpf=0; scoop=0.20; scoopms=60; vibdel=250; tongue=0.50; btone=0.68; relms=180; kcut=5.543; trim=0.4; matn=0.8; mat=0.8; reedk=0.5; subamt=0; bell=0; drift=2.8; thmix=0; rsoft=0; ftune=-1; life=0;) :
-  n == 3 ? (model=1; stiff=0.34; opening=0.64; bright=0.955; even=0; noiseamt=0.04; growlp=0.0; gthr=0.95; vibp=0.30; vibrate=4.6; glidems=4; body=1; bodyf=1320; cpos=0.40; f2f=2440; f2a=0.32; hpf=540; scoop=0.15; scoopms=50; vibdel=300; tongue=0.30; btone=0.607; relms=100; kcut=24.627; trim=-2; matn=0.15; mat=0.15; reedk=0.5; subamt=0; bell=0.023; drift=2.5; thmix=0; rsoft=1; ftune=0; twot=0; life=1;) :
-  n == 4 ? (model=2; jetr=0.459; airgain=1.0; bright=0.386; even=0.295; noiseamt=0.132; growlp=0.12; gthr=0.92; vibp=0.12; vibrate=3.8; glidems=4; body=0.603; bodyf=1300; f2a=0; hpf=0; scoop=0.40; scoopms=120; vibdel=400; tongue=0.30; btone=0.325; relms=200; kcut=4.353; trim=0; matn=0.0; mat=0.0; reedk=0.5; subamt=0; bell=0; drift=3.0; thmix=0; rsoft=0; ftune=0; life=0;) :
-  n == 5 ? (model=1; stiff=0.347; opening=0.615; bright=0.881; even=0; noiseamt=0.08; growlp=0.15; gthr=0.92; vibp=0.30; vibrate=4.4; glidems=4; body=0.315; bodyf=1460; cpos=0.449; f2f=2490; f2a=0.388; hpf=450; scoop=0.35; scoopms=70; vibdel=300; tongue=0.45; btone=0.667; relms=150; kcut=8; trim=-2.3; matn=0.85; mat=0.85; reedk=0.5; subamt=0.85; bell=0.604; drift=2.2; thmix=0; rsoft=0; ftune=0; apex=0.217; twot=1; life=1;) ;
+  n == 0 ? (model=0; stiff=0.31; opening=0.69; bright=0.542; even=0.681; noiseamt=0.05; growlp=0.0; gthr=0.92; vibp=0.25; vibrate=4.6; glidems=4; body=0.595; bodyf=430; f2a=0; hpf=0; scoop=0.10; scoopms=40; vibdel=300; tongue=0.35; btone=0.481; relms=120; kcut=40; trim=-2; matn=0.2; mat=0.2; reedk=0.5; subamt=0; bell=0; drift=2.2; thmix=0.055; thfc=1150; rsoft=1; ftune=0; life=1; throat=0; airhf=0.5;) :
+  n == 1 ? (model=1; stiff=0.27; opening=0.66; bright=1; even=0; noiseamt=0.08; growlp=0.15; gthr=0.92; vibp=0.30; vibrate=4.4; glidems=4; body=0.986; bodyf=1500; cpos=0.42; f2f=2700; f2a=0.499; hpf=0; scoop=0.35; scoopms=70; vibdel=300; tongue=0.45; btone=0.519; relms=150; kcut=5.002; trim=2.9; matn=0.85; mat=0.85; reedk=0.5; subamt=0.85; bell=0.615; drift=2.2; thmix=0; rsoft=0; ftune=0; twot=0; life=1; throat=0; airhf=0.6;) :
+  n == 2 ? (model=2; jetr=0.46; airgain=1.00; bright=0.4; even=0.281; noiseamt=0.038; growlp=0.0; gthr=0.95; vibp=0.35; vibrate=4.8; glidems=4; body=0.9; bodyf=2230; f2a=0; hpf=0; scoop=0.20; scoopms=60; vibdel=250; tongue=0.50; btone=0.68; relms=180; kcut=5.543; trim=0.4; matn=0.8; mat=0.8; reedk=0.5; subamt=0; bell=0; drift=2.8; thmix=0; rsoft=0; ftune=-1; life=0; throat=0; airhf=1.0;) :
+  n == 3 ? (model=1; stiff=0.34; opening=0.64; bright=0.955; even=0; noiseamt=0.04; growlp=0.0; gthr=0.95; vibp=0.30; vibrate=4.6; glidems=4; body=1; bodyf=1320; cpos=0.40; f2f=2440; f2a=0.32; hpf=540; scoop=0.15; scoopms=50; vibdel=300; tongue=0.30; btone=0.607; relms=100; kcut=24.627; trim=-2; matn=0.15; mat=0.15; reedk=0.5; subamt=0; bell=0.023; drift=2.5; thmix=0; rsoft=1; ftune=0; twot=0; life=1; throat=0; airhf=0.35;) :
+  n == 4 ? (model=2; jetr=0.459; airgain=1.0; bright=0.386; even=0.295; noiseamt=0.132; growlp=0.12; gthr=0.92; vibp=0.12; vibrate=3.8; glidems=4; body=0.603; bodyf=1300; f2a=0; hpf=0; scoop=0.40; scoopms=120; vibdel=400; tongue=0.30; btone=0.325; relms=200; kcut=4.353; trim=0; matn=0.0; mat=0.0; reedk=0.5; subamt=0; bell=0; drift=3.0; thmix=0; rsoft=0; ftune=0; life=0; throat=0; airhf=1.2;) :
+  n == 5 ? (model=1; stiff=0.347; opening=0.615; bright=0.881; even=0; noiseamt=0.08; growlp=0.15; gthr=0.92; vibp=0.30; vibrate=4.4; glidems=4; body=0.315; bodyf=1460; cpos=0.449; f2f=2490; f2a=0.388; hpf=450; scoop=0.35; scoopms=70; vibdel=300; tongue=0.45; btone=0.667; relms=150; kcut=8; trim=-2.3; matn=0.85; mat=0.85; reedk=0.5; subamt=0.85; bell=0.604; drift=2.2; thmix=0; rsoft=0; ftune=0; apex=0.28; twot=1; life=1; throat=0; airhf=0.6;) ;
   update_params();
 );
 
@@ -191,7 +194,9 @@ function apm(x, g, d) local(dd, v) ( dd = this.dl_tapf(d); v = x - g * dd; this.
 
 ps = srate / 29761;            // paper's reference rate
 pz = ps * 0.80;                // smaller tank = small plate
-lim_r = exp(-1 / (0.12 * srate)); lim_g = 1;
+lim_r = exp(-1 / (0.12 * srate)); lim_g = 1; vel01 = 0.8; ons = 100000; retg = 0; lastofft = -100000;
+ob_k = exp(-1 / (0.04 * srate)); tb_k = exp(-1 / (0.035 * srate)); ah_o = 0.09; ah_t = 0.5;
+ah_k1 = 1 - exp(-2 * $pi * 1800 / srate); ah_k2 = 1 - exp(-2 * $pi * 6500 / srate); ah_g = 0.035;
 pr_k = 1 - exp(-2 * $pi * 2500 / srate); wd_k = 1 - exp(-2 * $pi * 1800 / srate);
 wd_n = floor(0.0007 * srate); fxh2 = 0; prl = wdh = 0;
 mp = 30000;
@@ -251,21 +256,25 @@ while (midirecv(ofs, m1, m2, m3)) (
     paired = pairhi < 2 && nheld > 0 && spos + ofs - lastontime < 0.004 * srate;
     pendt = -1;
     lastontime = spos + ofs;
-    i = 0; j = 0;
-    while (i < nheld) ( stk[i] != m2 ? (stk[j] = stk[i]; j += 1); i += 1; );
-    nheld = j;
-    snap = (nheld == 0 || (paired && snap)) ? 1 : 0;
-    snap && !paired ? ( scenv = 1; tgenv = 0.45 + 1.1 * (m3 / 127); pv = 0;   // velocity = accent     // fresh (tongued) attack: scoop + tongue
+    // every note-on is its own entry (a pitch can be held twice - e.g. slurring up a fourth with
+    // AE-20 pairs re-sends the old pair's upper note); keep the stack bounded
+    nheld >= 30 ? ( i = 0; while (i < nheld - 1) ( stk[i] = stk[i + 1]; i += 1; ); nheld -= 1; );
+    // a note-on arriving within 3 ms of the last note-off is a slur, even if the note-off came
+    // first and the stack was momentarily empty (same-instant MIDI can arrive in either order);
+    // real tonguing leaves a gap of tens of ms
+    snap = ((nheld == 0 && spos + ofs - lastofft > 0.003 * srate) || (paired && snap)) ? 1 : 0;
+    snap && !paired ? ( scenv = 1; tgenv = 0.45 + 1.1 * (m3 / 127); pv = 0; vel01 = m3 / 127; ons = 0; tgb = tgenv; retg = amp > 0.08;   // re-tongued while still sounding?   // velocity = accent     // fresh (tongued) attack: scoop + tongue
              memset(buf, 0, N); memset(jbuf, 0, N); lp = 0; s2l = 0; ap1.yp = ap2.yp = ap3.yp = ap4.yp = ap5.yp = 0; );   // bore starts from rest
     vt = 0;                                     // every new note restarts the vibrato delay
     stk[nheld] = m2; nheld += 1; lastnote = m2; gotnote = 1;
     freq = 440 * 2 ^ ((m2 - 69) / 12);
     nheld == 1 ? vtarget = 0.25 + 0.7 * (m3 / 127);
   ) : (st == 0x80 || (st == 0x90 && m3 == 0)) ? (
-    i = 0; j = 0;
-    while (i < nheld) ( stk[i] != m2 ? (stk[j] = stk[i]; j += 1); i += 1; );
-    nheld = j;
-    nheld > 0 ? ( pendnote = stk[nheld - 1]; pendt = spos + ofs + 0.006 * srate; ) : ( vtarget = 0; pendt = -1; );
+    // a note-off releases only the OLDEST held copy of that pitch
+    i = 0; fnd = -1;
+    while (i < nheld && fnd < 0) ( stk[i] == m2 ? fnd = i; i += 1; );
+    fnd >= 0 ? ( i = fnd; while (i < nheld - 1) ( stk[i] = stk[i + 1]; i += 1; ); nheld -= 1; );
+    nheld > 0 ? ( pendnote = stk[nheld - 1]; pendt = spos + ofs + 0.006 * srate; ) : ( vtarget = 0; pendt = -1; lastofft = spos + ofs; );
   ) : st == 0xB0 ? (
     m2 == 2 ? (breathcc = m3 / 127; seen2 = 1);
     m2 == 11 ? (exprcc = m3 / 127; seen11 = 1);
@@ -285,6 +294,10 @@ bsrc == 3 || (bsrc == 0 && !seen2) ? (
   bin = venv;
 ) : bsrc == 2 ? bin = exprcc : bin = breathcc;
 b += (min(1, bin * 1.2) - b) * k1;
+// tone-shaping breath: a smoother copy (~25 ms) so the AE-20's stepped breath data glides the
+// timbre instead of switching it in tiny jumps (heard as sizzle / static). Pressure and level
+// still use the fast 'b' so articulation stays immediate.
+bs1 += (b - bs1) * ks; bs += (bs1 - bs) * ks;
 // while a note is still fading out, keep the model gently blown so the tail never cuts off
 bhold = b > bhold ? b : bhold * hold_k;                  // slow-falling pressure memory
 bm = amp > 0.001 ? max(max(b, bhold), model == 2 ? 0.16 : 0.04) : b;
@@ -292,16 +305,16 @@ bm = amp > 0.001 ? max(max(b, bhold), model == 2 ? 0.16 : 0.04) : b;
 // ---- pitch (delay length) with legato glide
 scenv *= sc_k; tgenv *= tg_k; vt += 1 / srate;
 dn1 += ((rand(2) - 1) - dn1) * 0.0008; dn2 += (dn1 - dn2) * 0.0008;      // ~4-6 Hz smoothed random
-f = freq * 2 ^ ((pbend + (model == 2 ? 0.14 : 0.06) * (b - 0.85) - scoopE * scenv + drift * 0.01 * 28 * dn2 + ftune * 0.01) / 12);     // attack scoop: start flat, settle up
+f = freq * 2 ^ ((pbend + (model == 2 ? 0.14 : 0.06) * (bs - 0.85) - scoopE * scenv + drift * 0.01 * 28 * dn2 + ftune * 0.01) / 12);     // attack scoop: start flat, settle up
 // ---- dynamics: breath reshapes the tone
 lipm = 0;
 // DYNAMICS: the preset's voicing follows breath as before; push past the SENS point and the
 // tone blooms open on top of that (BLOOM sets how far)
-blm = max(0, min(1, (b - bth) / max(0.05, 1 - bth))); blm = blm * blm * (3 - 2 * blm);
-push = 0.3 * min(1, b / max(0.05, bth)) + 0.7 * blm;
-bt = btone * (b - 0.55);                                   // soft = darker, loud = brighter (the voicing)
+blm = max(0, min(1, (bs - bth) / max(0.05, 1 - bth))); blm = blm * blm * (3 - 2 * blm);
+push = 0.3 * min(1, bs / max(0.05, bth)) + 0.7 * blm;
+bt = btone * (bs - 0.55);                                   // soft = darker, loud = brighter (the voicing)
 ce = c + (model == 2 ? 0 : 0.30 * bt + 0.16 * (reedk - 0.5)) + 0.15 * md; ce = max(0.08, min(0.97, ce));   // wall losses: wood absorbs more
-sw = max(0, 1 - b / 0.32); sw *= sw;                       // breath lives in the softest dynamics
+sw = max(0, 1 - bs / 0.32); sw *= sw;                       // breath lives in the softest dynamics
 ne = noiseamt * (0.12 + 2.2 * sw) * (1 - 0.5 * lipm);      // and fades as you play into the tone
 cet = max(0.06, min(0.6, (0.12 + 0.35 * bright + 0.25 * bt + 0.1 * md) * (f / 277) ^ 0.75));   // two-tube bore loss: rises with frequency, and longer tubes (lower notes) lose more per trip
 model == 2 ? Lt = (srate / f - (jb0 + 0.631 * (1 - ce) / ce)) / ja * 2 ^ ((1.9 - 0.45 * (fn = 69 + 12 * log(f / 440) / log(2); fn - 76) - 0.8 * max(0, fn - 79)) / 1200) :
@@ -322,7 +335,7 @@ vfade = vibdel <= 0 ? 1 : max(0, min(1, (vt - vibdel * 0.001) / 0.35));   // del
 vfs += (vfade - vfs) * (vfade < vfs ? vfo_k : 1);   // on a new note the vibrato eases out (~25 ms) - an instant drop jolts the bore
 vib = sin(2 * $pi * pv) * vibp * vfs;
 pg += 31 / srate; pg -= floor(pg);
-gamt = growlp * max(0, min(1, (b - gthr) / max(0.02, 1 - gthr)));
+gamt = growlp * max(0, min(1, (bs - gthr) / max(0.02, 1 - gthr)));
 gamt = min(1, gamt + cc1);
 // ---- breath noise, shaped like air rather than white hiss
 wn = rand(2) - 1;
@@ -332,16 +345,21 @@ ngr += (wn - ngr) * nk_g;                  // slow, rough flutter for growl (~12
 turb = ntl * nt_n; air = nbl * nb_n;
 // turbulence that wobbles the vibration itself: slow random changes in each cycle's length
 // (the VL1's breath lives inside the tone, not on top of it)
-nj1 += (wn - nj1) * nk_j; nj2 += (nj1 - nj2) * nk_j; jit = nj2 * nj_n * life * 0.008 * (0.4 + 0.8 * b);
+nj1 += (wn - nj1) * nk_j; nj2 += (nj1 - nj2) * nk_j; jit = nj2 * nj_n * life * 0.008 * (0.4 + 0.8 * bs);
 ns1 += (wn - ns1) * nk_s; shim = 1 + life * 0.1 * ns1 * ns_n * (0.3 + b);
 gr = gamt * (0.65 * sin(2 * $pi * pg) + 0.35 * ngr * ng_n);
 
 Lm = L * (1 - 0.025 * vib) * (1 + jit);          // vibrato depth 1.0 = about +/-40 cents
+// ONSET: on a fresh note the air arrives first and the tone catches a moment later -
+// a soft attack (or smooth ATTACK) leaves a longer gap, a hard crisp one almost none
+// (re-tongued during a phrase: no gap - the tongue just dips the tone for a moment)
+ons += 1; odl = retg ? 0 : (0.008 + 0.035 * (1 - vel01) ^ 1.2) * (1.6 - 1.2 * artic) * srate;
+pgate = retg ? min(1, 0.35 + 0.65 * ons / (0.015 * srate)) : ons < odl ? 0 : min(1, (ons - odl) / (0.012 * srate));
 model == 2 ? (
   // ---- air jet model (flute family)
   bm < 0.002 ? p = 0 : (
     p = (0.58 + 0.14 * bm * airgain) * min(1, bm / 0.015);   // kept inside the jet's stable range   // kept inside the jet's stable range
-    p *= shim; p *= 1 + (0.25 * ne + 0.6 * tongueE * tgenv) * turb + 0.03 * vib + 0.10 * gr + 0.25 * tongueE * tgenv;   // the jet is very sensitive: gentler growl
+    p *= pgate * shim; p *= 1 + (0.25 * ne + 0.6 * tongueE * tgenv) * turb + 0.03 * vib + 0.10 * gr + 0.25 * tongueE * tgenv;   // the jet is very sensitive: gentler growl
   );
   x = ap1.rda(buf, Lm);
   lp += (x - lp) * ce;
@@ -360,23 +378,31 @@ model == 2 ? (
     model == 1 ? p = (0.62 + 0.28 * bm) * min(1, bm / 0.015)              // cone speaks ~0.6-0.9
                : p = (0.58 + (pmax - 0.58) * bm) * min(1, bm / 0.015);
     p *= 1 + (ne + 0.4 * tongueE * tgenv) * turb + 0.03 * vib + 0.25 * gr + 0.12 * tongueE * tgenv;
-    p *= shim; p = min(p, model == 1 ? 0.92 : pmax + 0.03);
+    p *= pgate * shim; p = min(p, model == 1 ? 0.92 : pmax + 0.03);
   );
+  // THROAT: the player's mouth/throat is a resonant chamber on the other side of the reed.
+  // The mouthpiece pressure rings it, and it pushes back on the pressure the reed sees -
+  // more strongly the harder you blow
+  // the throat follows your breath: relaxed when soft, firmer and higher as you push
+  the = throat * min(1, bs * 1.1) ^ 1.3;
+  thg = the < 0.02 ? 0 : 0.05 + 0.16 * the; vtk = 1 / (2 + 2 * the);
+  pr = p - thg * vtb;
   model == 1 && twot ? (
     // two-tube cone: a truncated cone behaves like two open cylinders joined in parallel at
     // the reed - the body, and a short tube as long as the missing tip of the cone.
     // Their resonances interleave into the cone's full harmonic series.
-    d2 = max(1.5, Lm * min(0.38, apex * 2 ^ (max(0, 69 + 12 * log(f / 440) / log(2) - 73) / 12)));   // high notes: the mouthpiece stays the same size while the body shortens
+    d2 = max(1.5, Lm * min(0.38, apex * 2 ^ (max(0, 69 + 12 * log(f / 440) / log(2) - 76) / 12)));   // high notes: the mouthpiece stays the same size while the body shortens
     xa = rd(buf, Lm - d2); xb = rd(jbuf, d2);
     lp += (xa - lp) * cet;                        // body: losses grow with frequency (none at DC) -
                                                   // so the low resonances stay strongest, as in a real cone
     p1i = -lp; p2i = -0.9995 * xb;                // the short tip tube is almost lossless (open ends invert)
     peq = 0.5 * (p1i + p2i);                      // the two tubes seen by the reed as one port
-    dp = peq - p;
+    dp = peq - pr;
     k = openinge - stiffe * dp;
     rsoft ? k = k / sqrt(1 + 0.6 * k * k) * 1.2649;
     k > 1 ? k = 1 : k < -1 ? k = -1;
-    pj = peq + p + dp * k;                        // pressure in the mouthpiece
+    pj = peq + pr + dp * k;                       // pressure in the mouthpiece
+    vtin = pj;
     buf[wi] = pj - p1i; jbuf[wi] = pj - p2i;      // parallel junction: each tube gets the rest
     y = pj + bell * (1.6 * (xa - lp) - pj);
   ) : model == 1 ? (
@@ -386,22 +412,24 @@ model == 2 ? (
     lp += (xa - lp) * ce;
     ct = -0.95 * lp;
     y = ct - xb;
-    dp = p - y;
+    dp = pr - y;
+    vtin = y;
     k = openinge + stiffe * dp;
     rsoft ? k = k / sqrt(1 + 0.6 * k * k) * 1.2649;   // rounded reed closure: smoother, less aliasing
     k > 1 ? k = 1 : k < -1 ? k = -1;
     jbuf[wi] = ct;
-    buf[wi] = p - dp * k - ct;
+    buf[wi] = pr - dp * k - ct;
     y = y + bell * (1.6 * (xa - 0.95 * lp) - y);  // bell: radiated wave at the open end
   ) : (
     // cylindrical bore (clarinet): half-period loop, odd harmonics
     x = ap5.rda(buf, Lm);
     lp += (x - lp) * ce;
-    dp = -0.95 * lp - p;
+    dp = -0.95 * lp - pr;
     k = openinge - stiffe * dp;
     rsoft ? k = k / sqrt(1 + 0.6 * k * k) * 1.2649;
     k > 1 ? k = 1 : k < -1 ? k = -1;
-    buf[wi] = p + dp * k;
+    buf[wi] = pr + dp * k;
+    vtin = -0.95 * lp + pr + dp * k;
     y = x + bell * (1.6 * (x - 0.95 * lp) - x);  // bell: radiated wave at the open end
     even > 0 ? ( sq = y * y; asymavg += (sq - asymavg) * 0.001; y += even * 1.5 * (sq - asymavg); );
     // tone holes: above the cutoff, sound escapes through the open holes, carrying the reed's
@@ -409,12 +437,21 @@ model == 2 ? (
     thmix > 0 ? ( ro = rd(buf, Lm * 0.5); rol += (ro - rol) * thk; y += thmix * 8 * (ro - rol); );
   );
 );
+// throat resonator (two-pole bandpass, unity peak) driven by the mouthpiece pressure swing
+model != 2 && thg > 0 ? (
+  // the throat follows the note, settling on its 2nd..6th harmonic as THROAT rises
+  vtf = min(4000, fg * (1.5 + 4.5 * the)); vtg = tan($pi * vtf / srate);
+  vt1 = 1 / (1 + vtg * (vtg + vtk)); vt2 = vtg * vt1; vt3 = vtg * vt2;
+  vthp += (vtin - vthp) * 0.002; vtx = vtin - vthp;      // only the swing, not the steady blowing pressure
+  vtv3 = vtx - vtc2; vtv1 = vt1 * vtc1 + vt2 * vtv3; vtv2 = vtc2 + vt2 * vtc1 + vt3 * vtv3;
+  vtc1 = 2 * vtv1 - vtc1; vtc2 = 2 * vtv2 - vtc2; vtb = vtk * vtv1;
+) : ( vtb = 0; );
 // reeds: soft breath you can hear, pulsing with the reed's flow
 model != 2 ? ( y += ne * 0.3 * min(1, b * 6) * (0.6 + 0.8 * min(1, abs(y) * 1.5)) * air; );
 // subtone (sax): at soft breath the reed barely closes - the tone leans on the fundamental
 // and the air rushing past the reed becomes audible
 subamt > 0 ? (
-  sta = subamt * max(0, min(1, (0.45 - b) / 0.35)) ^ 0.8;
+  sta = subamt * max(0, min(1, (0.45 - bs) / 0.35)) ^ 0.8;
   sta > 0.001 ? (
     sg = tan($pi * min(0.45 * srate, f * 1.7) / srate); s1 = 1 / (1 + sg * (sg + 1.0)); s2 = sg * s1; s3 = sg * s2;
     sv3 = y - sic2; sv1 = s1 * sic1 + s2 * sv3; sv2 = sic2 + s2 * sic1 + s3 * sv3;
@@ -454,7 +491,7 @@ blk = 1 - exp(-2 * $pi * min(0.4 * srate, 2.2 * fg) / srate);
 bll += (y - bll) * blk; bhs = y - bll;
 y += btone * (model == 2 ? 1.6 : 3.2) * blm * bhs;   // jets: gentler, so their natural flutter stays in the background
 // dynamic filter: key-tracked lowpass that opens with breath (soft = few harmonics, loud = full)
-fcm = min(kcut, 40 * exp(-4.2 * btone * (1 - b) ^ 0.6));   // harmonics let through
+fcm = min(kcut, 40 * exp(-4.2 * btone * (1 - bs) ^ 0.6));   // harmonics let through
 fcd = min(0.45 * srate, fg * fcm);
 dg = tan($pi * fcd / srate);
 // 4-pole Butterworth as two cascaded state-variable stages
@@ -466,12 +503,25 @@ dv3 = y - dic4; dv1 = da1 * dic3 + da2 * dv3; dv2 = dic4 + da2 * dic3 + da3 * dv
 dic3 = 2 * dv1 - dic3; dic4 = 2 * dv2 - dic4; y = dv2;
 // RESO: a resonant peak that climbs and sharpens as you blow harder (breath > resonance)
 reso > 0.001 ? (
-  rsf = min(0.42 * srate, min(5500, fg * (1.6 + 7 * b ^ 1.3)));
-  rsq = 1.0 + 7 * reso * b; rsk = 1 / rsq; rsg = tan($pi * rsf / srate);
+  rsf = min(0.42 * srate, min(5500, fg * (1.6 + 7 * bs ^ 1.3)));
+  rsq = 1.0 + 7 * reso * bs; rsk = 1 / rsq; rsg = tan($pi * rsf / srate);
   rs1 = 1 / (1 + rsg * (rsg + rsk)); rs2 = rsg * rs1; rs3 = rsg * rs2;
   rv3 = y - rsc2; rv1 = rs1 * rsc1 + rs2 * rv3; rv2 = rsc2 + rs2 * rsc1 + rs3 * rv3;
   rsc1 = 2 * rv1 - rsc1; rsc2 = 2 * rv2 - rsc2;
-  y += reso * 2.4 * b * rsk * rv1;                        // peak grows with breath (up to ~+9 dB)
+  y += reso * 2.4 * bs * rsk * rv1;                        // peak grows with breath (up to ~+9 dB)
+);
+// HIGH AIR: the bright 2-10 kHz rush of breath you hear on a real player, added after the tone
+// filters so it isn't muffled; it pulses with each cycle and stays in proportion to the tone
+airhf > 0 ? (
+  tnk += (y * y - tnk) * 0.0015; tpk = max(abs(y), tpk * 0.9995);   // tone level and peak
+  an = rand(2) - 1;
+  ah1 += (an - ah1) * ah_k1; ah2 += (ah1 - ah2) * ah_k1; ahp = an - ah2;   // high-pass ~1.8 kHz
+  alp += (ahp - alp) * ah_k2;                                             // gentle top: tapers above ~6.5 kHz
+  apm = 0.35 + 0.65 * max(0, min(1, 0.5 + 0.5 * y / (tpk + 0.0001)));     // chopped by the vibrating jet / reed
+  y += airhf * ah_g * (1 + 1.5 * sw) * sqrt(tnk) * apm * alp;
+  // the air that comes before the tone, and the bright 't' of the tongue (~80 ms)
+  oae = !retg && ons < odl + 0.03 * srate ? 1 : oae * ob_k; tgb *= tb_k;
+  y += airhf * (ah_o * oae * bs + ah_t * tongueE * tgb * (0.3 + 0.7 * bs)) * alp;
 );
 // level follows breath and reaches silence right where the model stops sounding
 lt = b ^ 0.5;
@@ -564,6 +614,8 @@ function knob_info(i) (
   i == 10 ? ( kmin = 3;    kmax = 8;    kstep = 0.1;   kdef = 5;    #lbl = "VIB RATE";   sprintf(#val, "%.1f Hz", vibrate); ) :
   i == 11 ? ( kmin = 0;    kmax = 300;  kstep = 1;     kdef = 4;    #lbl = "GLIDE";      glidems < 8 ? #val = "tight" : glidems < 40 ? #val = "quick" : glidems < 100 ? #val = "smooth" : #val = "slow"; ) :
   i == 16 ? ( kmin = 0;    kmax = 12;   kstep = 1;     kdef = 2;    #lbl = "BEND RANGE"; sprintf(#val, "%d st", bendrange); ) :
+  i == 54 ? ( kmin = 0;    kmax = 1;    kstep = 0.01;  kdef = 0;    #lbl = "THROAT";
+              throat < 0.02 ? #val = "relaxed" : throat < 0.3 ? #val = "low" : throat < 0.6 ? #val = "mid" : throat < 0.85 ? #val = "high" : #val = "focused"; ) :
   i == 52 ? ( kmin = 0;    kmax = 1;    kstep = 0.01;  kdef = 0.35; #lbl = "RESO";
               reso < 0.03 ? #val = "off" : reso < 0.3 ? #val = "subtle" : reso < 0.6 ? #val = "vocal" : reso < 0.85 ? #val = "singing" : #val = "wah"; ) :
   i == 50 ? ( kmin = 0;    kmax = 1;    kstep = 0.01;  kdef = 0.5;  #lbl = "ATTACK";
@@ -669,7 +721,7 @@ col(0.145, 0.15, 0.165); gfx_rect(0, 0, gfx_w, S(56));
 col(0.30, 0.62, 0.98); gfx_rect(0, S(56), gfx_w, S(2));
 gfx_setfont(1); col(0.95, 0.93, 0.88); gfx_x = S(18); gfx_y = S(15); gfx_drawstr("VL");
 col(0.30, 0.62, 0.98); gfx_drawstr("96");
-gfx_setfont(2); col(0.50, 0.51, 0.55); gfx_x += S(8); gfx_y = S(25); gfx_drawstr("v1.35");
+gfx_setfont(2); col(0.50, 0.51, 0.55); gfx_x += S(8); gfx_y = S(25); gfx_drawstr("v1.42");
 
 // preset selector:  [<]  name  [>]   (click the name for the full list)
 gfx_setfont(2); col(0.50, 0.51, 0.55); gfx_x = S(318); gfx_y = S(6); gfx_drawstr("PRESET");
@@ -770,14 +822,13 @@ knob(27, S(578), S(382)); knob(28, S(650), S(382)); knob(52, S(722), S(382));
 // row 4: output
 group(S(104), S(466), S(662), S(96), "OUTPUT");
 // studio: a three-position switch (off / low / high)
-seg(22, 3, S(122), S(497), S(186), S(28));
-fx == 0 ? #fxs = "STUDIO: dry" : fx == 1 ? #fxs = "STUDIO: drive + comp + plate" : #fxs = "STUDIO: more drive, presence, width";
-gfx_setfont(2); col(0.50, 0.51, 0.55); gfx_measurestr(#fxs, tw, th);
-gfx_x = S(215) - tw / 2; gfx_y = S(533); gfx_drawstr(#fxs);
-gfx_setfont(3); col(0.50, 0.51, 0.55); gfx_x = S(350); gfx_y = S(504); gfx_drawstr("Note pairs: ");
-hp_x = gfx_x; hp_h = mouse_x >= hp_x && mouse_x < hp_x + S(40) && mouse_y >= S(502) && mouse_y < S(518);
-hp_h && (mouse_cap & 1) && !(last_cap & 1) ? ( pairhi = (pairhi + 1) % 3; slider_automate(2^33); );
-col(0.30, 0.62, 0.98); pairhi == 1 ? gfx_drawstr("HIGH") : pairhi == 2 ? gfx_drawstr("OFF") : gfx_drawstr("LOW");
+// STUDIO EFFECTS: three tiers, labelled like a knob (name + current setting underneath)
+seg(22, 3, S(122), S(494), S(210), S(26));
+gfx_setfont(2); col(0.60, 0.61, 0.65); gfx_measurestr("STUDIO EFFECTS", tw, th);
+gfx_x = S(227) - tw / 2; gfx_y = S(530); gfx_drawstr("STUDIO EFFECTS");
+fx == 0 ? #fxs = "off (dry)" : fx == 1 ? #fxs = "drive + comp + plate" : #fxs = "more drive, presence, width";
+gfx_setfont(3); col(0.93, 0.92, 0.88); gfx_measurestr(#fxs, tw, th);
+gfx_x = S(227) - tw / 2; gfx_y = S(544); gfx_drawstr(#fxs);
 knob(17, S(712), S(500));
 
 !(mouse_cap & 1) ? drag = 0;
